@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rede Social</title>
+<script src="/socket.io/socket.io.js"></script>
+<style>
+body{font-family:sans-serif;background:#111;color:#fff;margin:0;padding:10px}
+#chat{height:300px;overflow:auto;background:#222;padding:10px;border-radius:10px;margin:10px 0}
+.msg{background:#333;padding:8px;margin:5px;border-radius:8px}
+.mine{background:#0b93f6}
+.controls{display:flex;gap:5px}
+input,button{padding:10px;border-radius:20px;border:none}
+input{flex:1}
+button{background:#0b93f6;color:#fff;font-weight:bold}
+#recBtn.recording{background:red;animation:pulse 1s infinite}
+@keyframes pulse{0%{scale:1}50%{scale:1.1}100%{scale:1}}
+video{width:100%;max-width:300px;margin:5px;border-radius:10px}
+</style>
+</head>
+<body>
+<h3>🔴 Minha Rede - Chat + Áudio + Vídeo 100MB</h3>
+<input id="user" placeholder="Seu nome">
+<div id="chat"></div>
+<div class="controls">
+<input id="txt" placeholder="Mensagem">
+<button onclick="sendText()">Enviar</button>
+<button id="recBtn" onmousedown="startRec()" onmouseup="stopRec()" ontouchstart="startRec()" ontouchend="stopRec()">🎤 Segura p/ gravar</button>
+</div>
+<hr>
+<input type="file" id="vidFile" accept="video/*">
+<button onclick="uploadVid()">Postar Vídeo (até 100MB)</button>
+<div id="videos"></div>
+<script>
+const socket=io();
+let rec, chunks=[], isRec=false;
+function addMsg(d){
+ const div=document.createElement('div');
+ div.className='msg '+(d.user==user.value?'mine':'');
+ div.innerHTML=`<b>${d.user}</b> ${d.time||''}<br>${d.text||''} ${d.audio?`<audio controls src="${d.audio}"></audio>`:''}`;
+ chat.appendChild(div); chat.scrollTop=9999;
+}
+function sendText(){
+ if(!txt.value) return;
+ socket.emit('chat',{user:user.value||'anon',text:txt.value}); txt.value='';
+}
+async function startRec(){
+ if(isRec) return;
+ isRec=true; recBtn.classList.add('recording'); recBtn.innerText='🔴 Gravando...';
+ const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+ rec=new MediaRecorder(stream); chunks=[];
+ rec.ondataavailable=e=>chunks.push(e.data);
+ rec.onstop=()=>{
+  const blob=new Blob(chunks,{type:'audio/webm'});
+  const reader=new FileReader();
+  reader.onload=()=>{ socket.emit('audio',{user:user.value||'anon',audio:reader.result,time:new Date().toLocaleTimeString(),id:Date.now()}); };
+  reader.readAsDataURL(blob);
+ };
+ rec.start();
+}
+function stopRec(){
+ if(!isRec) return; isRec=false; recBtn.classList.remove('recording'); recBtn.innerText='🎤 Segura p/ gravar'; rec.stop();
+}
+async function uploadVid(){
+ const f=vidFile.files[0]; if(!f) return alert('Escolhe vídeo');
+ if(f.size>100*1024*1024) return alert('Maior que 100MB!');
+ const fd=new FormData(); fd.append('video',f); fd.append('user',user.value||'anon');
+ const r=await fetch('/upload',{method:'POST',body:fd}); const v=await r.json(); addVideo(v);
+}
+function addVideo(v){
+ const d=document.createElement('div'); d.innerHTML=`<b>${v.user}</b><br><video controls src="${v.url}"></video>`; videos.prepend(d);
+}
+socket.on('chat',addMsg);
+socket.on('newVideo',addVideo);
+fetch('/messages').then(r=>r.json()).then(a=>a.forEach(addMsg));
+fetch('/videos').then(r=>r.json()).then(a=>a.forEach(addVideo));
+</script>
+</body>
+</html>
