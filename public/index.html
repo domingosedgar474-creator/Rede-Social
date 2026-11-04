@@ -2,74 +2,77 @@
 <html>
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Rede Social</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nick - Rede Social</title>
 <script src="/socket.io/socket.io.js"></script>
 <style>
-body{font-family:sans-serif;background:#111;color:#fff;margin:0;padding:10px}
-#chat{height:300px;overflow:auto;background:#222;padding:10px;border-radius:10px;margin:10px 0}
-.msg{background:#333;padding:8px;margin:5px;border-radius:8px}
+body{font-family:sans-serif;background:#000;color:#fff;margin:0;padding:10px}
+#chat{height:300px;overflow:auto;background:#111;border-radius:12px;padding:10px}
+.msg{background:#222;padding:12px;margin:10px 0;border-radius:14px;position:relative}
 .mine{background:#0b93f6}
-.controls{display:flex;gap:5px}
-input,button{padding:10px;border-radius:20px;border:none}
-input{flex:1}
+.controls{display:flex;gap:5px;margin-top:10px;flex-wrap:wrap}
+input,button{padding:12px;border-radius:20px;border:none}
+input{flex:1;background:#222;color:#fff;min-width:120px}
 button{background:#0b93f6;color:#fff;font-weight:bold}
 #recBtn.recording{background:red;animation:pulse 1s infinite}
 @keyframes pulse{0%{scale:1}50%{scale:1.1}100%{scale:1}}
-video{width:100%;max-width:300px;margin:5px;border-radius:10px}
+video{width:100%;max-width:300px;border-radius:10px;margin-top:8px}
+/* NOVO VISUAL NICK */
+.post-avatar{width:36px;height:36px;background:#0b93f6;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:bold;cursor:pointer;flex-shrink:0}
+.nick-watermark{font-size:11px;color:#0b93f6;margin-top:6px;display:inline-block;animation:jump 1.5s infinite}
+@keyframes jump{0%{transform:translateY(0)}50%{transform:translateY(-5px)}100%{transform:translateY(0)}}
 </style>
 </head>
 <body>
-<h3>🔴 Minha Rede - Chat + Áudio + Vídeo 100MB</h3>
+<h3 style="text-align:center">🔵 Nick - Rede Social</h3>
 <input id="user" placeholder="Seu nome">
 <div id="chat"></div>
 <div class="controls">
-<input id="txt" placeholder="Mensagem">
+<input id="txt" placeholder="Escreva...">
 <button onclick="sendText()">Enviar</button>
-<button id="recBtn" onmousedown="startRec()" onmouseup="stopRec()" ontouchstart="startRec()" ontouchend="stopRec()">🎤 Segura p/ gravar</button>
+<button id="recBtn" onclick="isRec?stopRec():startRec()">🎤</button>
+<input type="file" id="vidFile" accept="video/*" style="display:none" onchange="uploadVid()">
+<button onclick="vidFile.click()">📹</button>
 </div>
-<hr>
-<input type="file" id="vidFile" accept="video/*">
-<button onclick="uploadVid()">Postar Vídeo (até 100MB)</button>
-<div id="videos"></div>
 <script>
 const socket=io();
-let rec, chunks=[], isRec=false;
+let isRec=false,rec,chunks=[],txt=document.getElementById('txt'),user=document.getElementById('user'),recBtn=document.getElementById('recBtn'),vidFile=document.getElementById('vidFile');
 function addMsg(d){
+ const c=document.getElementById('chat');
  const div=document.createElement('div');
- div.className='msg '+(d.user==user.value?'mine':'');
- div.innerHTML=`<b>${d.user}</b> ${d.time||''}<br>${d.text||''} ${d.audio?`<audio controls src="${d.audio}"></audio>`:''}`;
- chat.appendChild(div); chat.scrollTop=9999;
+ div.className='msg';
+ div.innerHTML=`<div style="display:flex;align-items:center;gap:8px"><div class="post-avatar">${d.user?d.user[0].toUpperCase():'N'}</div><b>${d.user||'Anônimo'}</b></div><div style="margin-top:6px">${d.text||''}</div><div class="nick-watermark">Nick @${d.user||'user'} ✓</div>`;
+ c.appendChild(div); c.scrollTop=c.scrollHeight;
 }
 function sendText(){
  if(!txt.value) return;
  socket.emit('chat',{user:user.value||'anon',text:txt.value}); txt.value='';
 }
 async function startRec(){
- if(isRec) return;
- isRec=true; recBtn.classList.add('recording'); recBtn.innerText='🔴 Gravando...';
+ if(isRec) return; isRec=true; recBtn.classList.add('recording');
  const stream=await navigator.mediaDevices.getUserMedia({audio:true});
  rec=new MediaRecorder(stream); chunks=[];
  rec.ondataavailable=e=>chunks.push(e.data);
  rec.onstop=()=>{
-  const blob=new Blob(chunks,{type:'audio/webm'});
-  const reader=new FileReader();
-  reader.onload=()=>{ socket.emit('audio',{user:user.value||'anon',audio:reader.result,time:new Date().toLocaleTimeString(),id:Date.now()}); };
-  reader.readAsDataURL(blob);
+   const blob=new Blob(chunks,{type:'audio/webm'});
+   const reader=new FileReader();
+   reader.onload=()=>{ socket.emit('audio',{user:user.value||'anon',data:reader.result}); };
+   reader.readAsDataURL(blob);
  };
  rec.start();
 }
-function stopRec(){
- if(!isRec) return; isRec=false; recBtn.classList.remove('recording'); recBtn.innerText='🎤 Segura p/ gravar'; rec.stop();
-}
+function stopRec(){ if(!isRec) return; isRec=false; recBtn.classList.remove('recording'); rec.stop(); }
 async function uploadVid(){
- const f=vidFile.files[0]; if(!f) return alert('Escolhe vídeo');
- if(f.size>100*1024*1024) return alert('Maior que 100MB!');
- const fd=new FormData(); fd.append('video',f); fd.append('user',user.value||'anon');
- const r=await fetch('/upload',{method:'POST',body:fd}); const v=await r.json(); addVideo(v);
+ const f=vidFile.files[0]; if(!f) return;
+ if(f.size>100*1024*1024) return alert('Máx 100MB');
+ const fd=new FormData(); fd.append('video',f);
+ const r=await fetch('/upload',{method:'POST',body:fd});
+ const j=await r.json(); socket.emit('video',j);
 }
 function addVideo(v){
- const d=document.createElement('div'); d.innerHTML=`<b>${v.user}</b><br><video controls src="${v.url}"></video>`; videos.prepend(d);
+ const d=document.createElement('div'); d.className='msg';
+ d.innerHTML=`<div style="display:flex;align-items:center;gap:8px"><div class="post-avatar">${v.user? v.user[0].toUpperCase():'N'}</div><b>${v.user}</b></div><video src="${v.url}" controls></video><div class="nick-watermark">Nick @${v.user} ✓</div>`;
+ document.getElementById('chat').appendChild(d);
 }
 socket.on('chat',addMsg);
 socket.on('newVideo',addVideo);
