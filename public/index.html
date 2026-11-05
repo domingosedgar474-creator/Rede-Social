@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NICK</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/nsfwjs@2.4.2/dist/nsfwjs.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
 body{background:#e5e5e5;display:flex;justify-content:center}
@@ -14,51 +16,62 @@ body{background:#e5e5e5;display:flex;justify-content:center}
 .card{position:relative}
 .bolinha{position:absolute;top:-14px;left:-6px;width:38px;height:38px;border-radius:50%;border:2px solid #fff;background:#ddd;display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.3);cursor:pointer;z-index:5}
 .bolinha img{width:100%;height:100%;object-fit:cover}
-.foto{width:100%;border-radius:14px;display:block;max-height:340px;object-fit:cover}
-.baixo{display:flex;justify-content:space-between;padding:14px 20px 22px}
-.btn-camara{background:#fff;border:1px solid #ddd;padding:9px 16px;border-radius:22px;font-size:15px;cursor:pointer}
-/* TELAS */
+.foto{width:100%;border-radius:14px;display:block;max-height:340px;object-fit:cover;background:#f2f2f2;min-height:220px}
+.marca-nick{position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,0.65);color:#fff;font-size:11px;font-weight:bold;padding:4px 8px;border-radius:10px;letter-spacing:1px}
+.baixo{display:flex;justify-content:space-between;padding:14px 20px 22px;gap:8px}
+.btn-camara{background:#fff;border:1px solid #ddd;padding:9px 16px;border-radius:22px;font-size:15px;cursor:pointer;flex:1}
+.btn-pub{background:#000;color:#fff;border:1px solid #000;padding:9px 16px;border-radius:22px;font-size:15px;cursor:pointer;flex:1;font-weight:bold}
 .tela{position:fixed;top:0;left:50%;transform:translateX(-50%) translateY(100%);width:100%;max-width:420px;height:100vh;background:#fff;z-index:200;transition:.3s;display:flex;flex-direction:column}
 .tela.aberto{transform:translateX(-50%) translateY(0)}
 .amigo{display:flex;align-items:center;gap:12px;padding:14px;border-bottom:1px solid #eee;cursor:pointer}
 .amigo-foto{width:44px;height:44px;border-radius:50%;background:#ddd;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .msg{max-width:80%;padding:10px 14px;border-radius:18px;background:#000;color:#fff;align-self:flex-end;font-size:15px}
+.msg-outro{background:#f0f0f0;color:#000;align-self:flex-start}
 .msg img{width:100%;border-radius:10px;display:block}
 input{outline:none}
+.badge{font-size:10px;background:#1877f2;color:#fff;padding:2px 6px;border-radius:10px}
 </style>
 </head>
 <body>
 
 <div class="phone">
-  <div class="top"><b>NICK</b><span onclick="abrirAmigos()">💬</span></div>
-
+  <div class="top"><b>NICK 🔒</b><span onclick="abrirAmigos()">💬</span></div>
   <div class="meio" id="meio">
     <div class="card">
       <div class="bolinha" onclick="abrirPerfil()">👤</div>
-      <img class="foto" id="fotoPrincipal" src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=800">
+      <img class="foto" id="fotoPrincipal" src="">
+      <div class="marca-nick">NICK</div>
     </div>
-    <p style="font-size:14px;margin-top:8px">Minha foto</p>
+    <p style="font-size:14px;margin-top:8px" id="legendaFoto">Sem foto ainda. Carrega em 📷 Câmara para meter a tua foto real.</p>
+    <p style="font-size:12px;color:#999" id="statusNick">Guarda o teu nome em 💬 para apareceres</p>
   </div>
-
   <div class="baixo">
     <button class="btn-camara" onclick="document.getElementById('fileFoto').click()">📷 Câmara</button>
+    <button class="btn-pub" onclick="publicarFotoReal()">✅ Publicar</button>
   </div>
 </div>
 
 <input type="file" id="fileFoto" accept="image/*" hidden onchange="trocarFoto(event)">
 <input type="file" id="fileChat" accept="image/*" hidden onchange="enviarFoto(event)">
 
-<!-- 1. LISTA DE AMIGOS -->
 <div class="tela" id="telaAmigos">
   <div style="display:flex;gap:10px;padding:14px;border-bottom:1px solid #eee;align-items:center">
     <span onclick="fecharAmigos()" style="font-size:26px;cursor:pointer">‹</span><b>Mensagens</b>
   </div>
-  <div class="amigo" onclick="abrirChat('Edgar')"><div class="amigo-foto">👤</div><b>Edgar</b></div>
-  <div class="amigo" onclick="abrirChat('NICK')"><div class="amigo-foto">👤</div><b>NICK</b></div>
-  <div class="amigo" onclick="abrirChat('Amigo')"><div class="amigo-foto">👤</div><b>Amigo</b></div>
+  <div style="padding:12px;border-bottom:1px solid #eee">
+    <input id="meuNomeInput" placeholder="Teu nome real" style="width:100%;padding:10px;border-radius:10px;border:1px solid #ddd;margin-bottom:8px">
+    <button onclick="salvarMeuNome()" style="width:100%;padding:11px;border-radius:10px;background:#000;color:#fff;border:none;font-weight:bold;cursor:pointer">Guardar meu nome</button>
+  </div>
+  <div style="padding:12px;background:#f0f7ff;border-radius:12px;margin:10px">
+    <b>📩 Convidar amigos reais</b>
+    <p style="font-size:12px;color:#555;margin:6px 0">Convida pelo número, ele recebe SMS igual Unitel</p>
+    <button onclick="convidarSMS()" style="width:100%;padding:12px;border-radius:10px;background:#25D366;color:#fff;border:none;font-weight:bold;margin-bottom:6px;cursor:pointer">📱 Convidar por SMS / Telefone</button>
+    <button onclick="convidarWhats()" style="width:100%;padding:12px;border-radius:10px;background:#000;color:#fff;border:none;font-weight:bold;margin-bottom:6px;cursor:pointer">💚 Convidar por WhatsApp</button>
+    <button onclick="copiarLink()" style="width:100%;padding:10px;border-radius:10px;background:#fff;border:1px solid #ddd;font-weight:bold;cursor:pointer">🔗 Copiar link</button>
+  </div>
+  <div id="listaAmigosReais"><p style="padding:14px;color:#999;font-size:13px;text-align:center">Ainda sem amigos reais.<br>Convida alguém para aparecer aqui.</p></div>
 </div>
 
-<!-- 2. CHAT COM O AMIGO -->
 <div class="tela" id="telaChat">
   <div style="display:flex;gap:10px;padding:14px;border-bottom:1px solid #eee;align-items:center">
     <span onclick="voltarAmigos()" style="font-size:26px;cursor:pointer">‹</span>
@@ -74,37 +87,116 @@ input{outline:none}
   </div>
 </div>
 
-<!-- 3. PERFIL DA BOLINHA -->
 <div class="tela" id="telaPerfil">
   <span onclick="fecharPerfil()" style="font-size:26px;cursor:pointer;padding:14px">‹ Voltar</span>
   <div style="width:110px;height:110px;border-radius:50%;background:#ddd;margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:40px">👤</div>
-  <h2 style="text-align:center;margin-top:10px">Edgar Domingos</h2>
-  <p style="text-align:center;color:#666;font-size:14px;margin-top:6px">Perfil da pessoa que publicou</p>
-  <button onclick="abrirChat('Edgar Domingos')" style="margin:16px;padding:13px;border-radius:12px;background:#000;color:#fff;border:none;font-weight:bold;cursor:pointer">💬 Enviar mensagem</button>
+  <h2 style="text-align:center;margin-top:10px" id="perfilNome">Sem nome ainda</h2>
+  <p style="text-align:center;color:#666;font-size:14px;margin-top:6px">Perfil da pessoa que publicou <span class="badge">✔ Verificado</span></p>
+  <button onclick="abrirChat(document.getElementById('perfilNome').textContent)" style="margin:16px;padding:13px;border-radius:12px;background:#000;color:#fff;border:none;font-weight:bold;cursor:pointer">💬 Enviar mensagem</button>
 </div>
 
 <script>
-function trocarFoto(e){
+const supabaseClient = supabase.createClient("https://gjplyrpmphqmjxlmtoas.supabase.co","sb_publishable_PfW-ULp4rUFS9pSa8DGBvw_Ym-h7ltm");
+const BAD_ENC = ["xxx","nrop","onrop","iatneh","oxes","edun","oaset","yssup","kcid","xes","eteuqob","oazuc","redof"];
+const BAD = BAD_ENC.map(s => s.split('').reverse().join(''));
+function temCoisaProibida(t){ if(!t) return false; let x=t.toLowerCase(); return BAD.some(p=>x.includes(p)); }
+function temLinkPerigoso(t){ if(!t) return false; let x=t.toLowerCase(); return x.includes("javascript:")||x.includes(".exe")||x.includes("<script")||x.includes("bit.ly"); }
+let ultimoEnvio=0;
+function antiSpam(){ let a=Date.now(); if(a-ultimoEnvio<3000){ alert("Calma, espera 3 segundos"); return true; } ultimoEnvio=a; return false; }
+async function fotoEhProibida(url){
+  try{
+    const model = await nsfwjs.load();
+    const img = new Image(); img.crossOrigin="anonymous"; img.src=url;
+    await new Promise((res,rej)=>{ img.onload=res; img.onerror=rej; setTimeout(rej,4000); });
+    const pred = await model.classify(img);
+    const p = pred.find(v=>v.className==="Porn"||v.className==="Hentai"||v.className==="Sexy");
+    if(p && p.probability>0.7) return true;
+  }catch(e){}
+  return false;
+}
+let MEU_LINK = window.location.href;
+function convidarSMS(){ let texto="Olá! Entra na NICK, a minha app! Clica aqui: "+MEU_LINK; window.location.href="sms:?body="+encodeURIComponent(texto); }
+function convidarWhats(){ let texto="Olá! Entra na NICK, a minha app! Clica aqui: "+MEU_LINK; window.open("https://wa.me/?text="+encodeURIComponent(texto),"_blank"); }
+function copiarLink(){ navigator.clipboard.writeText(MEU_LINK); alert("Link copiado: "+MEU_LINK); }
+let meuNome = localStorage.getItem('nick_name') || "";
+let fotoTemp = "";
+if(meuNome){ document.getElementById('meuNomeInput').value=meuNome; document.getElementById('perfilNome').textContent=meuNome; document.getElementById('statusNick').textContent="Logado como: "+meuNome; }
+async function salvarMeuNome(){
+  let n=document.getElementById('meuNomeInput').value.trim();
+  if(!n) return alert("Escreve teu nome");
+  if(temCoisaProibida(n)) return alert("⛔ Nome bloqueado");
+  meuNome=n; localStorage.setItem('nick_name',n);
+  document.getElementById('perfilNome').textContent=n;
+  document.getElementById('statusNick').textContent="Logado como: "+n;
+  await supabaseClient.from('profiles').upsert({id:n,name:n,avatar:"😎"});
+  alert("Guardado! És "+n); carregarAmigosReais(); fecharAmigos();
+}
+async function carregarAmigosReais(){
+  let {data} = await supabaseClient.from('profiles').select('*').order('created_at',{ascending:false}).limit(20);
+  let el=document.getElementById('listaAmigosReais');
+  if(!data || data.length===0) return;
+  el.innerHTML=data.filter(p=>p.name!==meuNome).map(p=>`<div class="amigo" onclick="abrirChat('${p.name}')"><div class="amigo-foto">👤</div><b>${p.name}</b> <span class="badge">✔</span></div>`).join('');
+}
+async function fotoComMarca(file){
+  return new Promise((resolve)=>{
+    let img=new Image();
+    img.onload=()=>{
+      let canvas=document.createElement('canvas'); canvas.width=img.width; canvas.height=img.height;
+      let ctx=canvas.getContext('2d'); ctx.drawImage(img,0,0);
+      let tamanho=Math.floor(canvas.width*0.035); ctx.font="bold "+tamanho+"px Arial";
+      let texto="  NICK  "; let largura=ctx.measureText(texto).width;
+      let x=canvas.width-largura-20; let y=canvas.height-20;
+      ctx.fillStyle="rgba(0,0,0,0.65)"; ctx.fillRect(x-5,y-tamanho-5,largura+10,tamanho+15);
+      ctx.fillStyle="#fff"; ctx.fillText(texto,x,y);
+      resolve(canvas.toDataURL('image/jpeg',0.9));
+    };
+    img.src=URL.createObjectURL(file);
+  });
+}
+async function trocarFoto(e){
   let f=e.target.files[0];if(!f)return;
-  document.getElementById('fotoPrincipal').src=URL.createObjectURL(f);
+  let comMarca=await fotoComMarca(f);
+  fotoTemp=comMarca;
+  document.getElementById('fotoPrincipal').src=comMarca;
+  document.getElementById('legendaFoto').textContent="Foto de "+(meuNome||"ti")+" • NICK";
+}
+async function publicarFotoReal(){
+  if(!meuNome) return alert("Primeiro guarda teu nome em 💬");
+  if(!fotoTemp) return alert("Primeiro escolhe foto na 📷 Câmara");
+  if(antiSpam()) return;
+  await supabaseClient.from('posts').insert({name:meuNome,avatar:"😎",text:"Foto de "+meuNome+" • NICK",image:""});
+  document.getElementById('statusNick').textContent="✅ Foto publicada para todos!";
+  alert("Publicado com marca NICK!");
 }
 function abrirPerfil(){document.getElementById('telaPerfil').classList.add('aberto')}
 function fecharPerfil(){document.getElementById('telaPerfil').classList.remove('aberto')}
-function abrirAmigos(){document.getElementById('telaAmigos').classList.add('aberto')}
+function abrirAmigos(){document.getElementById('telaAmigos').classList.add('aberto'); carregarAmigosReais();}
 function fecharAmigos(){document.getElementById('telaAmigos').classList.remove('aberto')}
+let chatAtual="Amigo";
 function abrirChat(nome){
   document.getElementById('telaAmigos').classList.remove('aberto');
   document.getElementById('telaPerfil').classList.remove('aberto');
   document.getElementById('telaChat').classList.add('aberto');
-  document.getElementById('chatNome').textContent=nome;
+  document.getElementById('chatNome').textContent=nome; chatAtual=nome;
+  carregarChatReal();
   setTimeout(()=>document.getElementById('chatInput').focus(),200);
 }
 function voltarAmigos(){document.getElementById('telaChat').classList.remove('aberto');document.getElementById('telaAmigos').classList.add('aberto')}
-function enviarMsg(){
-  let inp=document.getElementById('chatInput');let txt=inp.value.trim();if(!txt)return;
+async function carregarChatReal(){
+  let {data}=await supabaseClient.from('messages').select('*').order('created_at',{ascending:true}).limit(50);
   let el=document.getElementById('chatMsgs');
-  if(el.querySelector('p')) el.innerHTML='';
-  el.innerHTML+=`<div class="msg">${txt}</div>`; inp.value='';
+  if(!data||data.length===0) return;
+  el.innerHTML=data.map(m=>{ let minha=m.name===meuNome; return `<div class="msg ${minha?'':'msg-outro'}"><b style="font-size:11px">${m.name}</b><br>${m.text}</div>`; }).join('');
+  el.scrollTop=el.scrollHeight;
+}
+async function enviarMsg(){
+  let inp=document.getElementById('chatInput');let txt=inp.value.trim();if(!txt)return;
+  if(!meuNome) return alert("Guarda teu nome primeiro em 💬");
+  if(temCoisaProibida(txt)) return alert("⛔ Mensagem bloqueada pela segurança NICK");
+  if(temLinkPerigoso(txt)) return alert("⛔ Link perigoso bloqueado");
+  if(antiSpam()) return;
+  await supabaseClient.from('messages').insert({name:meuNome,text:txt});
+  inp.value=''; carregarChatReal();
 }
 function enviarFoto(e){
   let f=e.target.files[0];if(!f)return;
@@ -113,6 +205,8 @@ function enviarFoto(e){
   el.innerHTML+=`<div class="msg"><img src="${URL.createObjectURL(f)}"></div>`;
 }
 document.getElementById('chatInput').addEventListener('keydown',e=>{if(e.key==='Enter')enviarMsg()});
+setInterval(()=>{ if(document.getElementById('telaChat').classList.contains('aberto')) carregarChatReal(); },3000);
+carregarAmigosReais();
 </script>
 </body>
 </html>
