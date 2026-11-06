@@ -2,211 +2,190 @@
 <html lang="pt">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NICK</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/nsfwjs@2.4.2/dist/nsfwjs.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Nick</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
-body{background:#e5e5e5;display:flex;justify-content:center}
-.phone{width:100%;max-width:420px;min-height:100vh;background:#fff;display:flex;flex-direction:column}
-.top{padding:16px 20px 0;display:flex;flex-direction:column;gap:2px}
-.top b{font-size:14px}.top span{font-size:18px;cursor:pointer}
-.meio{flex:1;padding:20px;display:flex;flex-direction:column;justify-content:center}
-.card{position:relative}
-.bolinha{position:absolute;top:-14px;left:-6px;width:38px;height:38px;border-radius:50%;border:2px solid #fff;background:#ddd;display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.3);cursor:pointer;z-index:5}
-.bolinha img{width:100%;height:100%;object-fit:cover}
-.foto{width:100%;border-radius:14px;display:block;max-height:340px;object-fit:cover;background:#f2f2f2;min-height:220px}
-.marca-nick{position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,0.65);color:#fff;font-size:11px;font-weight:bold;padding:4px 8px;border-radius:10px;letter-spacing:1px}
-.baixo{display:flex;justify-content:space-between;padding:14px 20px 22px;gap:8px}
-.btn-camara{background:#fff;border:1px solid #ddd;padding:9px 16px;border-radius:22px;font-size:15px;cursor:pointer;flex:1}
-.btn-pub{background:#000;color:#fff;border:1px solid #000;padding:9px 16px;border-radius:22px;font-size:15px;cursor:pointer;flex:1;font-weight:bold}
-.tela{position:fixed;top:0;left:50%;transform:translateX(-50%) translateY(100%);width:100%;max-width:420px;height:100vh;background:#fff;z-index:200;transition:.3s;display:flex;flex-direction:column}
-.tela.aberto{transform:translateX(-50%) translateY(0)}
-.amigo{display:flex;align-items:center;gap:12px;padding:14px;border-bottom:1px solid #eee;cursor:pointer}
-.amigo-foto{width:44px;height:44px;border-radius:50%;background:#ddd;display:flex;align-items:center;justify-content:center;overflow:hidden}
-.msg{max-width:80%;padding:10px 14px;border-radius:18px;background:#000;color:#fff;align-self:flex-end;font-size:15px}
-.msg-outro{background:#f0f0f0;color:#000;align-self:flex-start}
-.msg img{width:100%;border-radius:10px;display:block}
-input{outline:none}
-.badge{font-size:10px;background:#1877f2;color:#fff;padding:2px 6px;border-radius:10px}
+*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,Arial,sans-serif}
+body{background:#fff;display:flex;justify-content:center}
+.phone{width:100%;max-width:390px;height:100dvh;background:#fff;position:relative;overflow:hidden;display:flex;flex-direction:column}
+.hidden{display:none!important}
+.page{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.top{display:flex;justify-content:space-between;align-items:center;padding:12px 14px 4px}
+.msg-btn{position:relative;font-size:22px;background:none;border:none;cursor:pointer}
+.badge{position:absolute;top:-6px;right:-8px;background:#e63b2e;color:#fff;font-size:10px;min-width:16px;height:16px;border-radius:10px;display:flex;align-items:center;justify-content:center;padding:0 3px;font-weight:700}
+.nick{color:#6aa3e8;font-size:13px;font-weight:600}
+.invite{font-size:12px;background:#2f7bf6;color:#fff;border:none;border-radius:14px;padding:5px 10px;cursor:pointer}
+.home{flex:1;display:flex;flex-direction:column;justify-content:flex-start;padding:16px 12px 0}
+.video-wrap{position:relative;width:92%;height:260px;margin:0 auto;border-radius:14px;overflow:hidden;background:#000;flex-shrink:0}
+.video-wrap video{width:100%;height:100%;object-fit:contain;background:#000}
+.publisher{position:absolute;top:10px;left:10px;width:30px;height:30px;border-radius:50%;background:#ddd;border:2px solid #fff;overflow:hidden;z-index:2;pointer-events:none}
+.publisher img{width:100%;height:100%;object-fit:cover;display:none}
+.play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:3}
+.play span{width:52px;height:52px;border:2.5px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;padding-left:3px;background:rgba(0,0,0,.25)}
+.counter{font-size:11px;color:#888;text-align:center;margin-top:6px}
+.mini-frame{margin:10px 8px 0;background:#f8f9ff;border:1px solid #e8eaff;border-radius:14px;padding:8px 10px;flex-shrink:0}
+.mini-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.mini-top b{font-size:12px;color:#111}
+.mini-top span{font-size:10px;color:#2f7bf6;font-weight:700;cursor:pointer}
+.mini-list{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.mini-list::-webkit-scrollbar{display:none}
+.mini-item{min-width:92px;max-width:92px;height:78px;background:#fff;border:1px solid #eee;border-radius:10px;overflow:hidden;position:relative;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.mini-item img{width:100%;height:100%;object-fit:cover}
+.mini-item p{font-size:11px;line-height:1.3;padding:6px;text-align:center;color:#222;word-break:break-word;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.mini-empty{min-width:100%;height:78px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#999;text-align:center}
+.dots{padding:10px 0 12px;text-align:center;font-size:16px;letter-spacing:2px;cursor:pointer}
+.head{padding:12px 14px;display:flex;justify-content:space-between;align-items:center}
+.chat-item{display:flex;gap:10px;align-items:center;padding:11px 14px;cursor:pointer;border-bottom:1px solid #f0f0f0}
+.avatar{width:36px;height:36px;border-radius:50%;background:#ddd;flex-shrink:0}
+.chat-item b{font-size:14px}
+.chat-item p{font-size:11px;color:#666;margin-top:1px}
+.arrow{margin-left:auto;color:#aaa}
+.chat-head{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid #eee}
+.back{font-size:20px;background:none;border:none;cursor:pointer}
+.call-btn{margin-left:auto;font-size:20px;background:none;border:none;cursor:pointer}
+.msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+.bubble{max-width:80%;padding:8px 10px;border-radius:14px;font-size:13px;word-break:break-word}
+.me{background:#2f7bf6;color:#fff;align-self:flex-end}
+.other{background:#ededed;align-self:flex-start}
+.send-row{display:flex;gap:8px;padding:10px 12px;align-items:center;border-top:1px solid #eee}
+.send-row input{flex:1;border:none;background:#f0f0f0;border-radius:20px;padding:9px 12px;font-size:13px;outline:none}
+.send-btn{width:34px;height:34px;border-radius:50%;background:#2f7bf6;color:#fff;border:none;font-size:16px;cursor:pointer}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:18px 18px 0 0;padding:10px 14px 18px;box-shadow:0 -5px 20px rgba(0,0,0,.2);z-index:10}
+.sheet .bar{width:36px;height:4px;background:#ddd;border-radius:10px;margin:0 auto 10px}
+.sheet h3{font-size:14px;text-align:center;margin-bottom:12px}
+.pub-grid{display:flex;justify-content:space-around;flex-wrap:wrap;gap:10px}
+.pub-grid button{background:none;border:none;cursor:pointer;font-size:12px}
+.pub-icon{width:52px;height:52px;background:#eef1f5;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 5px}
+.overlay{position:absolute;inset:0;background:rgba(0,0,0,.35);z-index:5}
+.cam-box{position:absolute;inset:0;background:#000;z-index:20;display:flex;flex-direction:column}
+.cam-box video{flex:1;width:100%;object-fit:cover}
+.cam-box button{padding:12px;background:#fff;border:none;font-size:13px;cursor:pointer}
+.call-screen{position:absolute;inset:0;background:#fff;color:#111;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px}
+.call-screen .avatar{width:80px;height:80px;background:#ddd;border-radius:50%}
+.call-actions{display:flex;gap:14px;margin-top:20px}
+.call-actions button{width:56px;height:56px;border-radius:50%;border:none;font-size:22px;cursor:pointer;background:#f0f0f0}
+.end{background:#e63b2e!important;color:#fff}
+.toast{position:absolute;left:50%;bottom:80px;transform:translateX(-50%);background:#111;color:#fff;font-size:12px;padding:8px 12px;border-radius:20px;z-index:50;white-space:nowrap}
+.text-box{position:absolute;left:12px;right:12px;bottom:70px;background:#fff;border-radius:16px;padding:12px;box-shadow:0 -5px 20px rgba(0,0,0,.2);z-index:15}
+.text-box textarea{width:100%;height:70px;border:1px solid #eee;border-radius:10px;padding:8px;font-size:13px;outline:none;resize:none}
+.text-box button{margin-top:8px;width:100%;padding:10px;background:#2f7bf6;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700}
 </style>
 </head>
 <body>
-
 <div class="phone">
-  <div class="top"><b>NICK 🔒</b><span onclick="abrirAmigos()">💬</span></div>
-  <div class="meio" id="meio">
-    <div class="card">
-      <div class="bolinha" onclick="abrirPerfil()">👤</div>
-      <img class="foto" id="fotoPrincipal" src="">
-      <div class="marca-nick">NICK</div>
-    </div>
-    <p style="font-size:14px;margin-top:8px" id="legendaFoto">Sem foto ainda. Carrega em 📷 Câmara para meter a tua foto real.</p>
-    <p style="font-size:12px;color:#999" id="statusNick">Guarda o teu nome em 💬 para apareceres</p>
-  </div>
-  <div class="baixo">
-    <button class="btn-camara" onclick="document.getElementById('fileFoto').click()">📷 Câmara</button>
-    <button class="btn-pub" onclick="publicarFotoReal()">✅ Publicar</button>
-  </div>
+<div id="home" class="page">
+<div class="top"><button class="msg-btn" onclick="openMessages()">💬 <span class="badge hidden" id="badge"></span></button><span class="nick">Nick</span><button class="invite" onclick="invite()">Convidar</button></div>
+<div class="home">
+<div class="video-wrap" id="videoWrap"><div class="publisher" id="publisher"><img id="publisherImg"></div><video id="videoEl" playsinline loop preload="auto"></video><div class="play" id="playBtn"><span>▶</span></div></div><p class="counter" id="counter"></p>
+<div class="mini-frame"><div class="mini-top"><b>Letras & Fotos</b><span onclick="openPublish()">+ Publicar</span></div><div class="mini-list" id="miniList"></div></div>
 </div>
-
-<input type="file" id="fileFoto" accept="image/*" hidden onchange="trocarFoto(event)">
-<input type="file" id="fileChat" accept="image/*" hidden onchange="enviarFoto(event)">
-
-<div class="tela" id="telaAmigos">
-  <div style="display:flex;gap:10px;padding:14px;border-bottom:1px solid #eee;align-items:center">
-    <span onclick="fecharAmigos()" style="font-size:26px;cursor:pointer">‹</span><b>Mensagens</b>
-  </div>
-  <div style="padding:12px;border-bottom:1px solid #eee">
-    <input id="meuNomeInput" placeholder="Teu nome real" style="width:100%;padding:10px;border-radius:10px;border:1px solid #ddd;margin-bottom:8px">
-    <button onclick="salvarMeuNome()" style="width:100%;padding:11px;border-radius:10px;background:#000;color:#fff;border:none;font-weight:bold;cursor:pointer">Guardar meu nome</button>
-  </div>
-  <div style="padding:12px;background:#f0f7ff;border-radius:12px;margin:10px">
-    <b>📩 Convidar amigos reais</b>
-    <p style="font-size:12px;color:#555;margin:6px 0">Convida pelo número, ele recebe SMS igual Unitel</p>
-    <button onclick="convidarSMS()" style="width:100%;padding:12px;border-radius:10px;background:#25D366;color:#fff;border:none;font-weight:bold;margin-bottom:6px;cursor:pointer">📱 Convidar por SMS / Telefone</button>
-    <button onclick="convidarWhats()" style="width:100%;padding:12px;border-radius:10px;background:#000;color:#fff;border:none;font-weight:bold;margin-bottom:6px;cursor:pointer">💚 Convidar por WhatsApp</button>
-    <button onclick="copiarLink()" style="width:100%;padding:10px;border-radius:10px;background:#fff;border:1px solid #ddd;font-weight:bold;cursor:pointer">🔗 Copiar link</button>
-  </div>
-  <div id="listaAmigosReais"><p style="padding:14px;color:#999;font-size:13px;text-align:center">Ainda sem amigos reais.<br>Convida alguém para aparecer aqui.</p></div>
+<div class="dots" onclick="openPublish()">•••</div>
 </div>
-
-<div class="tela" id="telaChat">
-  <div style="display:flex;gap:10px;padding:14px;border-bottom:1px solid #eee;align-items:center">
-    <span onclick="voltarAmigos()" style="font-size:26px;cursor:pointer">‹</span>
-    <div class="amigo-foto">👤</div><b id="chatNome" style="flex:1">Amigo</b>
-  </div>
-  <div id="chatMsgs" style="flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:8px">
-    <p style="color:#999;text-align:center;margin-top:40px">Escreve a primeira mensagem</p>
-  </div>
-  <div style="display:flex;gap:8px;padding:10px;border-top:1px solid #eee;align-items:center">
-    <button onclick="document.getElementById('fileChat').click()" style="width:38px;height:38px;border-radius:50%;background:#fff;border:1px solid #ddd;cursor:pointer">📷</button>
-    <input id="chatInput" placeholder="Escrever mensagem..." style="flex:1;padding:9px 14px;border-radius:25px;border:1px solid #ddd;background:#f8f8f8">
-    <button onclick="enviarMsg()" style="width:38px;height:38px;border-radius:50%;background:#000;color:#fff;border:none;cursor:pointer">➜</button>
-  </div>
+<div id="messages" class="page hidden"><div class="head"><button class="back" onclick="goHome()">←</button><b></b><button class="invite" onclick="invite()">Convidar</button></div><div id="chatList"></div></div>
+<div id="chat" class="page hidden"><div class="chat-head"><button class="back" onclick="openMessages()">←</button><div class="avatar"></div><div><b id="chatName" style="font-size:14px"></b></div><button class="call-btn hidden" id="callBtn" onclick="startCall()">📞</button></div><div class="msgs" id="msgs"></div><div class="send-row"><input id="msgInput" placeholder="Escrever mensagem..." autocomplete="off"><button class="send-btn" onclick="sendMsg()">➤</button></div></div>
+<div id="overlay" class="overlay hidden" onclick="closePublish()"></div>
+<div id="sheet" class="sheet hidden"><div class="bar"></div><h3>Publicar</h3><div class="pub-grid"><button onclick="document.getElementById('galInput').click()"><div class="pub-icon">🎬</div>Vídeo</button><button onclick="openTextBox()"><div class="pub-icon">✍️</div>Letras</button><button onclick="document.getElementById('photoInput').click()"><div class="pub-icon">🖼️</div>Foto</button><button onclick="openCamera()"><div class="pub-icon">📷</div>Câmara</button></div><input type="file" id="galInput" hidden accept="video/*"><input type="file" id="photoInput" hidden accept="image/*"></div>
+<div id="textBox" class="text-box hidden"><b style="font-size:13px">Escreve letras</b><textarea id="textInput" placeholder="Escreve aqui..."></textarea><button onclick="publishText()">Publicar letras</button><button onclick="closeTextBox()" style="background:#eee;color:#111;margin-top:6px">Cancelar</button></div>
+<div id="camBox" class="cam-box hidden"><video id="camVideo" autoplay playsinline></video><button onclick="closeCamera()">✕</button></div>
+<div id="callScreen" class="call-screen hidden"><div class="avatar"></div><b id="callName" style="font-size:18px"></b><p id="callTimer" style="font-size:18px">00:00</p><div class="call-actions"><button onclick="toggleMute()" id="muteBtn">🎤</button><button class="end" onclick="endCall()">📞</button><button>🔊</button></div></div>
+<div id="toast" class="toast hidden"></div>
 </div>
-
-<div class="tela" id="telaPerfil">
-  <span onclick="fecharPerfil()" style="font-size:26px;cursor:pointer;padding:14px">‹ Voltar</span>
-  <div style="width:110px;height:110px;border-radius:50%;background:#ddd;margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:40px">👤</div>
-  <h2 style="text-align:center;margin-top:10px" id="perfilNome">Sem nome ainda</h2>
-  <p style="text-align:center;color:#666;font-size:14px;margin-top:6px">Perfil da pessoa que publicou <span class="badge">✔ Verificado</span></p>
-  <button onclick="abrirChat(document.getElementById('perfilNome').textContent)" style="margin:16px;padding:13px;border-radius:12px;background:#000;color:#fff;border:none;font-weight:bold;cursor:pointer">💬 Enviar mensagem</button>
-</div>
-
 <script>
-const supabaseClient = supabase.createClient("https://gjplyrpmphqmjxlmtoas.supabase.co","sb_publishable_PfW-ULp4rUFS9pSa8DGBvw_Ym-h7ltm");
-const BAD_ENC = ["xxx","nrop","onrop","iatneh","oxes","edun","oaset","yssup","kcid","xes","eteuqob","oazuc","redof"];
-const BAD = BAD_ENC.map(s => s.split('').reverse().join(''));
-function temCoisaProibida(t){ if(!t) return false; let x=t.toLowerCase(); return BAD.some(p=>x.includes(p)); }
-function temLinkPerigoso(t){ if(!t) return false; let x=t.toLowerCase(); return x.includes("javascript:")||x.includes(".exe")||x.includes("<script")||x.includes("bit.ly"); }
-let ultimoEnvio=0;
-function antiSpam(){ let a=Date.now(); if(a-ultimoEnvio<3000){ alert("Calma, espera 3 segundos"); return true; } ultimoEnvio=a; return false; }
-async function fotoEhProibida(url){
-  try{
-    const model = await nsfwjs.load();
-    const img = new Image(); img.crossOrigin="anonymous"; img.src=url;
-    await new Promise((res,rej)=>{ img.onload=res; img.onerror=rej; setTimeout(rej,4000); });
-    const pred = await model.classify(img);
-    const p = pred.find(v=>v.className==="Porn"||v.className==="Hentai"||v.className==="Sexy");
-    if(p && p.probability>0.7) return true;
-  }catch(e){}
-  return false;
+(function(){ "use strict"; try{
+var store={chats:{},feed:[],myPhoto:"",unread:0,mini:[]};
+try{var s=localStorage.getItem("nick_app_v1"); if(s) store=JSON.parse(s)||store;}catch(e){}
+var chats=store.chats||{}; var feed=store.feed||[]; var mini=store.mini||[]; var current=""; var feedIndex=0; var myPhoto=store.myPhoto||""; var unread=store.unread||0;
+var userTouched=false;
+function save(){try{localStorage.setItem("nick_app_v1",JSON.stringify({chats:chats,feed:feed,myPhoto:myPhoto,unread:unread,mini:mini}));}catch(e){}}
+function toast(t){var el=document.getElementById("toast"); if(!el) return; el.textContent=t; el.classList.remove("hidden"); clearTimeout(el._t); el._t=setTimeout(function(){el.classList.add("hidden");},2000);}
+function esc(v){return String(v||"").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function updateBadge(){var b=document.getElementById("badge"); if(!b) return; if(unread>0){b.textContent=unread; b.classList.remove("hidden");} else {b.textContent=""; b.classList.add("hidden");} save();}
+window.receiveMsg=function(name,text){try{if(!name||!text) return; if(!chats[name]) chats[name]={phone:"",msgs:[]}; chats[name].msgs.push(["other",text]); if(current!==name){unread++; updateBadge();} if(current===name) renderMsgs(); if(!document.getElementById("messages").classList.contains("hidden")) renderList(); save();}catch(e){}};
+function renderMini(){
+var el=document.getElementById("miniList"); if(!el) return; el.innerHTML="";
+if(!mini.length){ el.innerHTML='<div class="mini-empty">Ainda nada.<br>Toca em + Publicar para pôr letras ou foto.</div>'; return; }
+mini.slice().reverse().forEach(function(m){
+var d=document.createElement("div"); d.className="mini-item";
+if(m.type==="photo"){ d.innerHTML='<img src="'+m.data+'">'; } else { d.innerHTML='<p>'+esc(m.data)+'</p>'; }
+el.appendChild(d);
+});
 }
-let MEU_LINK = window.location.href;
-function convidarSMS(){ let texto="Olá! Entra na NICK, a minha app! Clica aqui: "+MEU_LINK; window.location.href="sms:?body="+encodeURIComponent(texto); }
-function convidarWhats(){ let texto="Olá! Entra na NICK, a minha app! Clica aqui: "+MEU_LINK; window.open("https://wa.me/?text="+encodeURIComponent(texto),"_blank"); }
-function copiarLink(){ navigator.clipboard.writeText(MEU_LINK); alert("Link copiado: "+MEU_LINK); }
-let meuNome = localStorage.getItem('nick_name') || "";
-let fotoTemp = "";
-if(meuNome){ document.getElementById('meuNomeInput').value=meuNome; document.getElementById('perfilNome').textContent=meuNome; document.getElementById('statusNick').textContent="Logado como: "+meuNome; }
-async function salvarMeuNome(){
-  let n=document.getElementById('meuNomeInput').value.trim();
-  if(!n) return alert("Escreve teu nome");
-  if(temCoisaProibida(n)) return alert("⛔ Nome bloqueado");
-  meuNome=n; localStorage.setItem('nick_name',n);
-  document.getElementById('perfilNome').textContent=n;
-  document.getElementById('statusNick').textContent="Logado como: "+n;
-  await supabaseClient.from('profiles').upsert({id:n,name:n,avatar:"😎"});
-  alert("Guardado! És "+n); carregarAmigosReais(); fecharAmigos();
+window.openTextBox=function(){ closePublish(); var b=document.getElementById("textBox"); if(b) b.classList.remove("hidden"); var ta=document.getElementById("textInput"); if(ta) setTimeout(function(){ta.focus();},100); };
+window.closeTextBox=function(){ var b=document.getElementById("textBox"); if(b) b.classList.add("hidden"); };
+window.publishText=function(){ var ta=document.getElementById("textInput"); if(!ta||!ta.value.trim()) return; mini.push({type:"text",data:ta.value.trim()}); ta.value=""; window.closeTextBox(); renderMini(); save(); toast("Letras publicadas"); };
+function playCurrent(){
+var v=document.getElementById("videoEl"), play=document.getElementById("playBtn");
+if(!v||!feed.length) return;
+try{
+v.loop=true; v.playsInline=true;
+if(!userTouched){ v.muted=true; } else { v.muted=false; v.volume=1; }
+var p=v.play();
+if(p) p.then(function(){ if(play) play.style.display="none"; }).catch(function(){
+v.muted=true; var p2=v.play(); if(p2) p2.then(function(){ if(play) play.style.display="none"; }).catch(function(){ if(play) play.style.display="flex"; });
+});
+}catch(e){ if(play) play.style.display="flex"; }
 }
-async function carregarAmigosReais(){
-  let {data} = await supabaseClient.from('profiles').select('*').order('created_at',{ascending:false}).limit(20);
-  let el=document.getElementById('listaAmigosReais');
-  if(!data || data.length===0) return;
-  el.innerHTML=data.filter(p=>p.name!==meuNome).map(p=>`<div class="amigo" onclick="abrirChat('${p.name}')"><div class="amigo-foto">👤</div><b>${p.name}</b> <span class="badge">✔</span></div>`).join('');
+function showVideo(i){try{
+var v=document.getElementById("videoEl"), play=document.getElementById("playBtn"), counter=document.getElementById("counter"), pubImg=document.getElementById("publisherImg");
+if(!feed.length){if(v){try{v.pause();}catch(e){} v.removeAttribute("src"); try{v.load();}catch(e){}} if(play) play.style.display="flex"; if(counter) counter.textContent=""; if(pubImg) pubImg.style.display="none"; return;}
+feedIndex=((i%feed.length)+feed.length)%feed.length;
+if(v){ v.src=feed[feedIndex].url; }
+if(counter) counter.textContent=(feedIndex+1)+" / "+feed.length;
+if(pubImg){var ph=feed[feedIndex].photo||myPhoto; if(ph){pubImg.src=ph; pubImg.style.display="block";} else pubImg.style.display="none";}
+playCurrent();
+}catch(e){}}
+function addToFeed(url){if(!url) return; feed.push({url:url,photo:myPhoto}); feedIndex=feed.length-1; showVideo(feedIndex); save();}
+function show(id){["home","messages","chat"].forEach(function(x){var el=document.getElementById(x); if(el) el.classList.add("hidden");}); var t=document.getElementById(id); if(t) t.classList.remove("hidden"); closePublish();}
+window.show=show; window.goHome=function(){show("home"); playCurrent();};
+window.openMessages=function(){unread=0; updateBadge(); renderList(); show("messages");};
+function renderList(){try{
+var el=document.getElementById("chatList"); if(!el) return; el.innerHTML="";
+Object.keys(chats).forEach(function(name){var c=chats[name]||{msgs:[]}; var last=c.msgs.length?c.msgs[c.msgs.length-1][1]:""; var d=document.createElement("div"); d.className="chat-item"; d.onclick=function(){openChat(name);}; d.innerHTML='<div class="avatar"></div><div><b>'+esc(name)+'</b><p>'+esc(last)+'</p></div><span class="arrow">›</span>'; el.appendChild(d);});
+}catch(e){}}
+function updateCallBtn(){var btn=document.getElementById("callBtn"); if(!btn) return; if(current&&chats[current]&&chats[current].phone) btn.classList.remove("hidden"); else btn.classList.add("hidden");}
+function openChat(name){try{current=name; var n=document.getElementById("chatName"); if(n) n.textContent=name; updateCallBtn(); renderMsgs(); show("chat");}catch(e){}}
+window.openChat=openChat;
+function renderMsgs(){try{var box=document.getElementById("msgs"); if(!box) return; box.innerHTML=""; if(!chats[current]) return; chats[current].msgs.forEach(function(m){var d=document.createElement("div"); d.className="bubble "+(m[0]==="eu"?"me":"other"); d.textContent=m[1]; box.appendChild(d);}); box.scrollTop=box.scrollHeight;}catch(e){}}
+window.sendMsg=function(){try{var i=document.getElementById("msgInput"); if(!i||!i.value.trim()||!current) return; if(!chats[current]) chats[current]={phone:"",msgs:[]}; chats[current].msgs.push(["eu",i.value.trim()]); i.value=""; renderMsgs(); save();}catch(e){}};
+var mi=document.getElementById("msgInput"); if(mi) mi.addEventListener("keydown",function(e){if(e.key==="Enter") window.sendMsg();});
+function unlock(){ if(userTouched) return; userTouched=true; var v=document.getElementById("videoEl"); if(v){ v.muted=false; v.volume=1; try{ v.play(); }catch(e){} } }
+document.addEventListener("touchstart", function(){ unlock(); }, {passive:true});
+var startX=0, wrap=document.getElementById("videoWrap");
+if(wrap){wrap.addEventListener("touchstart",function(e){try{startX=e.touches[0].clientX;}catch(err){}},{passive:true}); wrap.addEventListener("touchend",function(e){if(!feed.length) return; try{var dx=e.changedTouches[0].clientX-startX; if(dx<-40) showVideo(feedIndex+1); if(dx>40) showVideo(feedIndex-1);}catch(err){}},{passive:true});}
+var ve=document.getElementById("videoEl");
+var playBtn=document.getElementById("playBtn");
+if(ve){
+ve.addEventListener("play",function(){ if(playBtn) playBtn.style.display="none"; });
+ve.addEventListener("playing",function(){ if(playBtn) playBtn.style.display="none"; });
+ve.addEventListener("pause",function(){ if(playBtn) playBtn.style.display="flex"; });
+ve.addEventListener("ended",function(){ if(playBtn) playBtn.style.display="flex"; });
+ve.addEventListener("click",function(e){ e.stopPropagation(); if(!feed.length) return; try{ if(!userTouched) unlock(); if(ve.paused){ve.play();} else {ve.pause();} }catch(err){} });
 }
-async function fotoComMarca(file){
-  return new Promise((resolve)=>{
-    let img=new Image();
-    img.onload=()=>{
-      let canvas=document.createElement('canvas'); canvas.width=img.width; canvas.height=img.height;
-      let ctx=canvas.getContext('2d'); ctx.drawImage(img,0,0);
-      let tamanho=Math.floor(canvas.width*0.035); ctx.font="bold "+tamanho+"px Arial";
-      let texto="  NICK  "; let largura=ctx.measureText(texto).width;
-      let x=canvas.width-largura-20; let y=canvas.height-20;
-      ctx.fillStyle="rgba(0,0,0,0.65)"; ctx.fillRect(x-5,y-tamanho-5,largura+10,tamanho+15);
-      ctx.fillStyle="#fff"; ctx.fillText(texto,x,y);
-      resolve(canvas.toDataURL('image/jpeg',0.9));
-    };
-    img.src=URL.createObjectURL(file);
-  });
-}
-async function trocarFoto(e){
-  let f=e.target.files[0];if(!f)return;
-  let comMarca=await fotoComMarca(f);
-  fotoTemp=comMarca;
-  document.getElementById('fotoPrincipal').src=comMarca;
-  document.getElementById('legendaFoto').textContent="Foto de "+(meuNome||"ti")+" • NICK";
-}
-async function publicarFotoReal(){
-  if(!meuNome) return alert("Primeiro guarda teu nome em 💬");
-  if(!fotoTemp) return alert("Primeiro escolhe foto na 📷 Câmara");
-  if(antiSpam()) return;
-  await supabaseClient.from('posts').insert({name:meuNome,avatar:"😎",text:"Foto de "+meuNome+" • NICK",image:""});
-  document.getElementById('statusNick').textContent="✅ Foto publicada para todos!";
-  alert("Publicado com marca NICK!");
-}
-function abrirPerfil(){document.getElementById('telaPerfil').classList.add('aberto')}
-function fecharPerfil(){document.getElementById('telaPerfil').classList.remove('aberto')}
-function abrirAmigos(){document.getElementById('telaAmigos').classList.add('aberto'); carregarAmigosReais();}
-function fecharAmigos(){document.getElementById('telaAmigos').classList.remove('aberto')}
-let chatAtual="Amigo";
-function abrirChat(nome){
-  document.getElementById('telaAmigos').classList.remove('aberto');
-  document.getElementById('telaPerfil').classList.remove('aberto');
-  document.getElementById('telaChat').classList.add('aberto');
-  document.getElementById('chatNome').textContent=nome; chatAtual=nome;
-  carregarChatReal();
-  setTimeout(()=>document.getElementById('chatInput').focus(),200);
-}
-function voltarAmigos(){document.getElementById('telaChat').classList.remove('aberto');document.getElementById('telaAmigos').classList.add('aberto')}
-async function carregarChatReal(){
-  let {data}=await supabaseClient.from('messages').select('*').order('created_at',{ascending:true}).limit(50);
-  let el=document.getElementById('chatMsgs');
-  if(!data||data.length===0) return;
-  el.innerHTML=data.map(m=>{ let minha=m.name===meuNome; return `<div class="msg ${minha?'':'msg-outro'}"><b style="font-size:11px">${m.name}</b><br>${m.text}</div>`; }).join('');
-  el.scrollTop=el.scrollHeight;
-}
-async function enviarMsg(){
-  let inp=document.getElementById('chatInput');let txt=inp.value.trim();if(!txt)return;
-  if(!meuNome) return alert("Guarda teu nome primeiro em 💬");
-  if(temCoisaProibida(txt)) return alert("⛔ Mensagem bloqueada pela segurança NICK");
-  if(temLinkPerigoso(txt)) return alert("⛔ Link perigoso bloqueado");
-  if(antiSpam()) return;
-  await supabaseClient.from('messages').insert({name:meuNome,text:txt});
-  inp.value=''; carregarChatReal();
-}
-function enviarFoto(e){
-  let f=e.target.files[0];if(!f)return;
-  let el=document.getElementById('chatMsgs');
-  if(el.querySelector('p')) el.innerHTML='';
-  el.innerHTML+=`<div class="msg"><img src="${URL.createObjectURL(f)}"></div>`;
-}
-document.getElementById('chatInput').addEventListener('keydown',e=>{if(e.key==='Enter')enviarMsg()});
-setInterval(()=>{ if(document.getElementById('telaChat').classList.contains('aberto')) carregarChatReal(); },3000);
-carregarAmigosReais();
+window.openPublish=function(){var s=document.getElementById("sheet"), o=document.getElementById("overlay"); if(s) s.classList.remove("hidden"); if(o) o.classList.remove("hidden");};
+function closePublish(){var s=document.getElementById("sheet"), o=document.getElementById("overlay"); if(s) s.classList.add("hidden"); if(o) o.classList.add("hidden");}
+window.closePublish=closePublish;
+var gi=document.getElementById("galInput");
+if(gi) gi.addEventListener("change",function(e){try{var f=e.target.files&&e.target.files[0]; if(!f) return; if(!f.type||f.type.indexOf("video")!==0){closePublish(); show("home"); toast("Escolhe um vídeo"); return;} var url=URL.createObjectURL(f); addToFeed(url); closePublish(); show("home"); toast("Publicado");}catch(err){toast("Não deu para publicar");} gi.value="";});
+var pi=document.getElementById("photoInput");
+if(pi) pi.addEventListener("change",function(e){try{var f=e.target.files&&e.target.files[0]; if(!f) return; var r=new FileReader(); r.onload=function(ev){ mini.push({type:"photo",data:ev.target.result}); renderMini(); save(); closePublish(); show("home"); toast("Foto publicada"); }; r.readAsDataURL(f);}catch(err){toast("Não deu para publicar");} pi.value="";});
+var stream=null;
+window.openCamera=function(){closePublish(); var b=document.getElementById("camBox"); if(b) b.classList.remove("hidden"); try{if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){closeCamera(); toast("Câmara não disponível"); return;} navigator.mediaDevices.getUserMedia({video:true,audio:false}).then(function(s){stream=s; var cv=document.getElementById("camVideo"); if(cv) cv.srcObject=s;}).catch(function(){closeCamera();});}catch(err){closeCamera();}};
+window.closeCamera=function(){try{if(stream) stream.getTracks().forEach(function(t){t.stop();});}catch(e){} var b=document.getElementById("camBox"); if(b) b.classList.add("hidden");};
+var callStream=null, callTimerInt=null, callSecs=0, muted=false;
+window.startCall=function(){try{if(!current||!chats[current]||!chats[current].phone) return; window.location.href="tel:"+chats[current].phone; var cn=document.getElementById("callName"); if(cn) cn.textContent=current; var ct=document.getElementById("callTimer"); if(ct) ct.textContent="00:00"; var cs=document.getElementById("callScreen"); if(cs) cs.classList.remove("hidden"); callSecs=0; clearInterval(callTimerInt); try{if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia){navigator.mediaDevices.getUserMedia({audio:true,video:false}).then(function(s){callStream=s;}).catch(function(){});}}catch(e){} callTimerInt=setInterval(function(){callSecs++; var m=String(Math.floor(callSecs/60)).padStart(2,"0"); var s2=String(callSecs%60).padStart(2,"0"); var t=document.getElementById("callTimer"); if(t) t.textContent=m+":"+s2;},1000);}catch(e){}};
+window.endCall=function(){try{if(callStream) callStream.getTracks().forEach(function(t){t.stop();});}catch(e){} clearInterval(callTimerInt); var cs=document.getElementById("callScreen"); if(cs) cs.classList.add("hidden");};
+window.toggleMute=function(){muted=!muted; try{if(callStream) callStream.getAudioTracks().forEach(function(t){t.enabled=!muted;});}catch(e){} var b=document.getElementById("muteBtn"); if(b) b.textContent=muted?"🔇":"🎤";};
+window.invite=function(){try{
+var base=window.location.origin+window.location.pathname;
+var link=base+"?from="+encodeURIComponent("Nick");
+var text="Entra no meu app Nick: "+link;
+if(navigator.share){navigator.share({title:"Nick",text:text,url:link}).catch(function(){copyLink(link);});} else copyLink(link);
+}catch(e){toast("Não deu para convidar");}};
+function copyLink(link){try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(link).then(function(){toast("Link copiado");}).catch(function(){fallbackCopy(link);});} else fallbackCopy(link);}catch(e){fallbackCopy(link);}}
+function fallbackCopy(link){try{var ta=document.createElement("textarea"); ta.value=link; ta.style.position="fixed"; ta.style.opacity="0"; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); document.body.removeChild(ta); toast("Link copiado");}catch(e){toast("Copia o link");}}
+try{var p=new URLSearchParams(window.location.search); var from=p.get("from"); if(from&&!chats[from]){chats[from]={phone:"",msgs:[]}; save();}}catch(e){}
+updateBadge(); updateCallBtn(); showVideo(0); renderMini(); renderList();
+}catch(e){}})();
 </script>
 </body>
 </html>
