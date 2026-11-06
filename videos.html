@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NICK - Vídeos IA</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
+body{background:#000;color:#fff;padding:14px;padding-bottom:80px}
+a{color:#fff;text-decoration:none;font-weight:800}
+.logo{font-size:28px;font-weight:900}
+.box{background:#1a1a1a;border-radius:18px;padding:14px;margin:12px 0}
+.card{background:#111;border-radius:18px;padding:0;margin:14px 0;border:1px solid #333;overflow:hidden;position:relative}
+.card-text{padding:16px}
+.card b{font-size:16px}
+.card p{font-size:13px;color:#ccc;margin-top:6px}
+.tag{background:#FFD600;color:#000;font-size:11px;padding:4px 8px;border-radius:20px;font-weight:800}
+.tag-real{background:#00C853;color:#fff;font-size:11px;padding:4px 8px;border-radius:20px;font-weight:800}
+.status{background:#00C853;color:#fff;padding:10px;border-radius:20px;text-align:center;font-weight:800;margin:10px 0}
+button{background:#FF2D55;color:#fff;border:none;padding:12px;border-radius:12px;width:100%;font-weight:800;margin-top:10px}
+.marca-agua{position:absolute;top:12px;left:12px;z-index:5;background:rgba(0,0,0,.55);padding:6px 10px;border-radius:20px;font-weight:900;font-size:14px;letter-spacing:1px;border:1px solid rgba(255,255,255,.4)}
+.marca-agua span{color:#FFD600}
+.marca-agua-baixo{position:absolute;bottom:12px;right:12px;z-index:5;background:rgba(0,0,0,.55);padding:5px 9px;border-radius:20px;font-size:11px;font-weight:800}
+.video-fake{height:180px;background:linear-gradient(135deg,#7B2FF7,#FF6A88,#FF9A5A);display:flex;align-items:center;justify-content:center;font-size:50px;position:relative}
+video{width:100%;height:220px;object-fit:cover;display:block;background:#000}
+.publicar-box{background:#FFD600;color:#000;border-radius:18px;padding:16px;margin:12px 0;text-align:center}
+</style>
+</head>
+<body>
+<a href="index.html">← Voltar NICK</a>
+<div style="display:flex;justify-content:space-between;margin-top:10px"><div class="logo">✦ NICK</div><div>🎬 IA</div></div>
+<div class="status" id="status">🤖 IA A CRIAR VÍDEOS...</div>
+
+<div class="box"><b>Como funciona:</b><p>Primeiro a IA mete vídeos para atrair. Depois és TU que publicas o teu vídeo. Nada virtual. Cada vídeo tem marca ✦ NICK. Ficam 48h.</p></div>
+
+<div class="publicar-box">
+<b style="font-size:18px;">🎬 QUERES APARECER NA NICK?</b>
+<p style="margin-top:6px;font-size:13px;">Publica o teu vídeo! Kuduro, NPC, comédia, fruta, receita.</p>
+<input type="file" id="meuVideo" accept="video/*" style="display:none;" onchange="publicarMeuVideo(this)">
+<button onclick="document.getElementById('meuVideo').click()" style="background:#000;color:#FFD600;margin-top:10px;">📤 PUBLICAR MEU VÍDEO AGORA</button>
+<p style="font-size:11px;margin-top:6px;">Grátis • Com marca ✦ NICK • 🇦🇴 Angola</p>
+</div>
+
+<div id="lista"></div>
+<script>
+let prompts={
+npc:["African young man from Luanda Angola, dark skin, colorful shirt, human face, speaking Portuguese Angola, saying E ai familia bora curtir, NPC style funny, TikTok vertical video","African NPC girl from Luanda, braids, pink top, human face, speaking Angola Portuguese, saying Oi pessoal me segue, funny NPC"],
+fruta:["Funny African mango fruit character with human face, dancing and talking in Angola Portuguese, TikTok style","Banana NPC character African with human face, funny, speaking Portuguese Angola, dancing"],
+danca:["African girl dancing kuduro in Luanda street, human face, TikTok dance","African boys dancing afro house in Angola, human face, TikTok vertical"],
+comedia:["African comedian from Angola, funny NPC, human face, speaking Portuguese Angola, Luanda street comedy"],
+receita:["African woman cooking funge and calulu in Luanda kitchen, human face, TikTok recipe, Angola Portuguese"]};
+let videos=[],gerados=0;
+function criarVideo(){
+let tipos=Object.keys(prompts);
+let tipo=tipos[Math.floor(Math.random()*tipos.length)];
+let prompt=prompts[tipo][Math.floor(Math.random()*prompts[tipo].length)];
+let nomes={"npc":"NPC Luanda 🇦🇴","fruta":"Fruta NPC 🍌","danca":"Kuduro Angola 💃","comedia":"Comédia Angola 😂","receita":"Receita Angola 🍲"};
+let emojis={"npc":"🤖","fruta":"🍌","danca":"💃","comedia":"😂","receita":"🍲"};
+videos.unshift({id:Date.now()+Math.random(),titulo:nomes[tipo],emoji:emojis[tipo],prompt:prompt,tipo:tipo.toUpperCase(),criado:Date.now(),videoUrl:""});
+gerados++;
+}
+for(let i=0;i<20;i++){ criarVideo(); }
+
+function copiarPrompt(texto, botao){
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(texto).then(function(){ botao.innerHTML="✅ COPIADO! Cola na Kling / Hailuo"; setTimeout(function(){ botao.innerHTML="📋 COPIAR PROMPT COM MARCA NICK"; },2000); });
+  } else { alert(texto); }
+}
+
+function publicarMeuVideo(input){
+  if(!input.files[0]) return;
+  let url = URL.createObjectURL(input.files[0]);
+  let novo = {id:Date.now(), titulo:"Vídeo de um bro de Angola 🇦🇴", emoji:"🎬", prompt:"Vídeo enviado por um utilizador real da NICK. Sem IA, sem virtual. Gente real.", tipo:"REAL", criado:Date.now(), videoUrl:url};
+  videos.unshift(novo);
+  mostrar();
+  alert("Obrigado bro! O teu vídeo já está na NICK! Partilha o link para os teus amigos verem.");
+}
+
+function mostrar(){
+let l=document.getElementById('lista');
+l.innerHTML="";
+videos.forEach(function(v){
+let promptFinal = v.prompt + " - with watermark text NICK on video, like TikTok";
+let topo = "";
+if(v.videoUrl){
+  topo = '<div style="position:relative;"><video controls src="'+v.videoUrl+'"></video><div class="marca-agua" style="position:absolute;">✦ <span>NICK</span></div></div>';
+} else {
+  topo = '<div class="video-fake">'+v.emoji+'<div class="marca-agua">✦ <span>NICK</span></div><div class="marca-agua-baixo">✦ NICK • @nick</div></div>';
+}
+let tag = v.tipo==="REAL" ? '<span class="tag-real">👤 REAL • ANGOLA</span>' : '<span class="tag">🤖 IA • '+v.tipo+' • ANGOLA</span>';
+let botao = v.tipo==="REAL" ? '' : '<button onclick="copiarPrompt(\''+promptFinal.replace(/'/g,"")+'\', this)">📋 COPIAR PROMPT COM MARCA NICK</button>';
+l.innerHTML += '<div class="card">'+topo+'<div class="card-text">'+tag+'<br><br><b>'+v.titulo+'</b><p>'+promptFinal+'</p><p>⏰ Fica 48h • 🎬 Até 7 min • 💧 Marca: ✦ NICK</p>'+botao+'</div></div>';
+});
+document.getElementById('status').innerHTML = "🤖 IA + PESSOAS REAIS • " + videos.length + " vídeos • Marca: ✦ NICK";
+}
+setInterval(function(){ for(let i=0;i<3;i++){ criarVideo(); } videos=videos.filter(function(v){ return (Date.now()-v.criado)/3600000 < 48; }); mostrar(); },60000);
+mostrar();
+</script>
+</body>
+</html>
