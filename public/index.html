@@ -1,116 +1,141 @@
 <!DOCTYPE html>
-<html lang="pt"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Nick</title>
-<style>body{font-family:Arial;background:#111;color:#fff;padding:10px}video,audio{width:100%;border-radius:10px}.card{background:#222;padding:10px;border-radius:10px;margin-bottom:12px}.noir{background:#000;height:280px;display:flex;align-items:center;justify-content:center;text-align:center;border-radius:10px}button{padding:10px 12px;border-radius:10px;border:none;margin:3px}input{width:100%;padding:10px;margin:5px 0;border-radius:8px;box-sizing:border-box}.msg{background:#222;padding:8px;border-radius:10px;margin:5px 0}.me{background:#0a7a42}.top{display:flex;gap:5px}.top button{flex:1}</style>
-</head><body>
-<h1>Nick 🎬</h1>
-<input type="text" id="meuNome" placeholder="Teu nome... Ex: Edgar">
-<div class="top">
-<button onclick="mostrar('videos')" style="background:#333;color:#fff">🎬 Vídeos</button>
-<button onclick="mostrar('chat')" style="background:#00c853;color:#fff">💬 Conversar</button>
-</div>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nick 🎬</title>
+<script src="/socket.io/socket.io.js"></script>
+<style>
+body{font-family:Arial;background:#111;color:#fff;margin:0;padding:10px}
+header{background:#e60023;padding:12px;text-align:center;font-size:22px;font-weight:bold;border-radius:10px}
+input,button,textarea{padding:10px;margin:5px 0;border-radius:8px;border:none;width:100%;box-sizing:border-box}
+button{background:#e60023;color:#fff;font-weight:bold;cursor:pointer}
+.post{background:#222;padding:10px;border-radius:10px;margin:10px 0}
+video{width:100%;border-radius:10px;background:#000}
+.pendente{filter:brightness(0);background:#000}
+#chatBox{background:#000;height:250px;overflow:auto;padding:10px;border-radius:10px;margin-top:10px}
+.msg{background:#333;padding:8px;border-radius:8px;margin:5px 0}
+audio{width:100%}
+.admin-btns button{width:48%;display:inline-block}
+</style>
+</head>
+<body>
+<header>Nick 🎬</header>
 
-<div id="tela-videos">
+<input id="meuNome" placeholder="Teu nome ex: Edgar">
 <input type="file" id="videoFile" accept="video/*">
-<input type="text" id="legenda" placeholder="Legenda...">
-<button onclick="publicar()" style="background:#00c853;color:#fff;width:100%">Publicar Vídeo</button>
-<p id="msg"></p>
-<div id="lista"></div>
-</div>
+<input id="legenda" placeholder="Legenda do vídeo...">
+<button onclick="publicar()">📤 Publicar Vídeo</button>
+<button onclick="abrirChat()">💬 Conversar</button>
 
-<div id="tela-chat" style="display:none">
-<p>Link para convidar: <b id="meuLink"></b> <button onclick="copiarLink()">Copiar Link</button></p>
-<div id="chatBox" style="max-height:400px;overflow-y:auto"></div>
-<div style="display:flex;gap:5px">
-<input type="text" id="textoMsg" placeholder="Escreve..." style="flex:1">
-<button onclick="enviarTexto()" style="background:#00c853;color:#fff">Enviar</button>
-</div>
-<button id="btnMic" onmousedown="comecarAudio()" onmouseup="pararAudio()" ontouchstart="comecarAudio()" ontouchend="pararAudio()" style="background:#ff5722;color:#fff;width:100%;margin-top:5px">🎤 Segura para falar - máx 3 min</button>
-<p id="statusAudio" style="text-align:center"></p>
+<div id="feed"></div>
+
+<div id="chatArea" style="display:none">
+<h3>💬 Conversa</h3>
+<div id="chatBox"></div>
+<input id="msgTexto" placeholder="Escreve...">
+<button onclick="enviarMsg()">Enviar</button>
+<button onmousedown="comecarAudio()" onmouseup="pararAudio()" ontouchstart="comecarAudio()" ontouchend="pararAudio()">🎤 Segura para falar</button>
+<p style="font-size:12px">Segura no 🎤 para gravar, larga para enviar</p>
 </div>
 
 <script>
-let telaAtual='videos';
-function mostrar(t){ telaAtual=t; document.getElementById('tela-videos').style.display=t=='videos'?'block':'none'; document.getElementById('tela-chat').style.display=t=='chat'?'block':'none'; if(t=='chat') carregarChat(); }
-document.getElementById('meuLink').innerText = location.origin + '/';
-function copiarLink(){ navigator.clipboard.writeText(location.origin + '/'); alert('Link copiado! Envia ao teu amigo.'); }
+const socket = io();
+const params = new URLSearchParams(location.search);
+const isAdmin = params.get('admin') === '1';
+let posts = [];
+let recorder, chunks = [];
 
-const PROIBIDO=['xxx','porn','porno','hentai','nudes','nude','sexo','sex','onlyfans'];
-function eProibido(t){ if(!t) return false; t=t.toLowerCase(); return PROIBIDO.some(p=>t.includes(p)); }
+function publicar(){
+  const file = document.getElementById('videoFile').files[0];
+  const legenda = document.getElementById('legenda').value;
+  const nome = document.getElementById('meuNome').value || 'Anónimo';
+  if(!file) return alert('Escolhe um vídeo primeiro');
+  const reader = new FileReader();
+  reader.onload = () => {
+    socket.emit('novo-post', {nome, legenda, video: reader.result, data: new Date().toLocaleString()});
+    alert('Enviado! Vai ficar preto até ser aprovado.');
+    document.getElementById('legenda').value='';
+  };
+  reader.readAsDataURL(file);
+}
 
-async function publicar(){
-  const f=document.getElementById('videoFile').files[0];
-  const legenda=document.getElementById('legenda').value;
-  if(!f) return alert('Escolhe um vídeo');
-  if(eProibido(legenda) || eProibido(f.name)) return alert('Conteúdo não permitido.');
-  const fd=new FormData(); fd.append('video',f); fd.append('legenda',legenda);
-  document.getElementById('msg').innerText='A enviar...';
-  const r=await fetch('/upload',{method:'POST',body:fd});
-  if(!r.ok) return document.getElementById('msg').innerText='Bloqueado';
-  document.getElementById('msg').innerText='Enviado! ⏳ A aguardar aprovação.';
-  carregar();
+function mostrar(){
+  const feed = document.getElementById('feed');
+  feed.innerHTML = '';
+  posts.slice().reverse().forEach(p => {
+    const podeVer = p.aprovado || isAdmin;
+    const div = document.createElement('div');
+    div.className = 'post';
+    let videoHtml = '';
+    if(podeVer){
+      videoHtml = `<video src="${p.video}" controls class="${!p.aprovado ? 'pendente' : ''}"></video>`;
+    } else {
+      videoHtml = `<video class="pendente"></video><p>⏳ A aguardar aprovação</p>`;
+    }
+    let botoes = '';
+    if(isAdmin && !p.aprovado){
+      botoes = `<div class="admin-btns"><button onclick="aprovar(${p.id})">✅ Aprovar</button><button onclick="apagar(${p.id})">❌ Apagar</button></div>`;
+    }
+    if(isAdmin && p.aprovado){
+      botoes = `<button onclick="apagar(${p.id})">❌ Apagar</button>`;
+    }
+    div.innerHTML = `<b>${p.nome}</b> - ${p.data}<br>${p.legenda || ''}<br>${videoHtml}${botoes}`;
+    feed.appendChild(div);
+  });
+  if(isAdmin) document.body.insertAdjacentHTML('afterbegin','<p style="background:green;padding:8px;border-radius:8px;text-align:center">MODO ADMIN ATIVO ✅</p>');
 }
-async function carregar(){
-  const souAdmin = location.search.includes('admin=1');
-  const url = souAdmin ? '/admin-videos' : '/videos';
-  const res = await fetch(url); const vids = await res.json();
-  const div = document.getElementById('lista');
-  div.innerHTML = vids.map(v=>{
-    let media = (!v.aprovado && !souAdmin) ? `<div class="noir">⏳<br>A aguardar aprovação</div>` : `<video src="${v.url}" controls></video>`;
-    let botoes = souAdmin ? `<br><button onclick="aprovar(${v.id})" style="background:#00c853;color:#fff">✅ Aprovar</button><button onclick="apagar(${v.id})" style="background:red;color:#fff">❌ Apagar</button>` : `<br><button onclick="denunciar(${v.id})">🚩 Denunciar</button>`;
-    return `<div class="card">${media}<p>${v.legenda||''}</p>${botoes}</div>`;
-  }).join('');
-}
-async function aprovar(id){ await fetch('/aprovar/'+id,{method:'POST'}); carregar(); }
-async function apagar(id){ if(confirm('Apagar?')){ await fetch('/apagar/'+id,{method:'POST'}); carregar(); } }
-async function denunciar(id){ await fetch('/denunciar/'+id,{method:'POST'}); alert('Obrigado.'); }
-carregar();
 
-async function carregarChat(){
-  const res = await fetch('/mensagens'); const lista = await res.json();
-  const meuNome = document.getElementById('meuNome').value;
-  document.getElementById('chatBox').innerHTML = lista.map(m=>{
-    const souEu = m.nome === meuNome;
-    if(m.tipo==='audio') return `<div class="msg ${souEu?'me':''}"><b>${m.nome}</b><br><audio src="${m.url}" controls></audio></div>`;
-    return `<div class="msg ${souEu?'me':''}"><b>${m.nome}:</b> ${m.texto}</div>`;
-  }).join('');
-  const box=document.getElementById('chatBox'); box.scrollTop=box.scrollHeight;
+function aprovar(id){ socket.emit('aprovar-post', id); }
+function apagar(id){ socket.emit('apagar-post', id); }
+
+function abrirChat(){
+  document.getElementById('chatArea').style.display='block';
+  window.scrollTo(0, document.body.scrollHeight);
 }
-async function enviarTexto(){
-  const nome=document.getElementById('meuNome').value || 'Anónimo';
-  const texto=document.getElementById('textoMsg').value;
+function enviarMsg(){
+  const nome = document.getElementById('meuNome').value || 'Anónimo';
+  const texto = document.getElementById('msgTexto').value;
   if(!texto) return;
-  if(eProibido(texto)) return alert('Palavra proibida');
-  await fetch('/mensagem',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nome,texto})});
-  document.getElementById('textoMsg').value=''; carregarChat();
+  socket.emit('mensagem', {nome, texto, data: new Date().toLocaleString()});
+  document.getElementById('msgTexto').value='';
 }
-let mediaRecorder=null, chunks=[], timerAudio=null, segundos=0;
+function addMsg(m){
+  const box = document.getElementById('chatBox');
+  const d = document.createElement('div');
+  d.className='msg';
+  d.innerHTML = `<b>${m.nome}:</b> ${m.texto || ''} ${m.audio ? `<audio src="${m.audio}" controls></audio>` : ''}<br><small>${m.data||''}</small>`;
+  box.appendChild(d);
+  box.scrollTop = box.scrollHeight;
+}
+
 async function comecarAudio(){
   try{
     const stream = await navigator.mediaDevices.getUserMedia({audio:true});
-    mediaRecorder = new MediaRecorder(stream); chunks=[]; segundos=0;
-    document.getElementById('statusAudio').innerText='🔴 A gravar... 0:00 / 3:00 - larga para enviar';
-    mediaRecorder.ondataavailable = e => chunks.push(e.data);
-    mediaRecorder.onstop = async () => {
-      stream.getTracks().forEach(t=>t.stop());
-      document.getElementById('statusAudio').innerText='A enviar áudio...';
-      const blob = new Blob(chunks,{type:'audio/webm'});
-      const fd=new FormData(); fd.append('audio',blob,'audio.webm'); fd.append('nome', document.getElementById('meuNome').value || 'Anónimo');
-      await fetch('/mensagem-audio',{method:'POST',body:fd});
-      document.getElementById('statusAudio').innerText='Áudio enviado ✅';
-      carregarChat();
+    recorder = new MediaRecorder(stream);
+    chunks = [];
+    recorder.ondataavailable = e => chunks.push(e.data);
+    recorder.onstop = () => {
+      const blob = new Blob(chunks, {type:'audio/webm'});
+      const reader = new FileReader();
+      reader.onload = () => {
+        const nome = document.getElementById('meuNome').value || 'Anónimo';
+        socket.emit('mensagem-audio', {nome, audio: reader.result, data: new Date().toLocaleString()});
+      };
+      reader.readAsDataURL(blob);
     };
-    mediaRecorder.start();
-    timerAudio=setInterval(()=>{
-      segundos++; let m=Math.floor(segundos/60), s=segundos%60;
-      document.getElementById('statusAudio').innerText=`🔴 A gravar... ${m}:${s<10?'0'+s:s} / 3:00 - larga para enviar`;
-      if(segundos>=180){ pararAudio(); }
-    },1000);
-  }catch(e){ alert('Precisas permitir o microfone'); }
+    recorder.start();
+  }catch(e){ alert('Permite o microfone para gravar'); }
 }
-function pararAudio(){
-  if(mediaRecorder && mediaRecorder.state==='recording'){ clearInterval(timerAudio); mediaRecorder.stop(); }
-}
-setInterval(()=>{ if(telaAtual==='chat') carregarChat(); },3000);
+function pararAudio(){ if(recorder) recorder.stop(); }
+
+socket.on('posts-iniciais', d => { posts = d; mostrar(); });
+socket.on('novo-post', p => { posts.push(p); mostrar(); });
+socket.on('post-aprovado', id => { const p = posts.find(x=>x.id==id); if(p) p.aprovado=true; mostrar(); });
+socket.on('post-apagado', id => { posts = posts.filter(x=>x.id!=id); mostrar(); });
+socket.on('mensagens-iniciais', msgs => msgs.forEach(addMsg));
+socket.on('mensagem', addMsg);
+socket.on('mensagem-audio', addMsg);
 </script>
-</body></html>
+</body>
+</html>
