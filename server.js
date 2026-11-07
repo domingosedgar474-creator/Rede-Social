@@ -1,8 +1,12 @@
 const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, { maxHttpBufferSize: 1e8 });
 const PORT = process.env.PORT || 10000;
 
 const uploadDir = path.join(__dirname, 'uploads');
@@ -37,4 +41,18 @@ app.get('/health', (req, res) => {
   res.send('OK');
 });
 
-app.listen(PORT, () => console.log('Nick a correr na porta ' + PORT));
+// --- CHAT / GAVETA DE MENSAGENS - SÓ ACRESCENTADO ---
+let messages = [];
+io.on('connection', (socket) => {
+  socket.emit('mensagens-iniciais', messages);
+  socket.on('mensagem', (msg) => {
+    messages.push(msg);
+    io.emit('mensagem', msg);
+  });
+  socket.on('mensagem-audio', (msg) => {
+    messages.push(msg);
+    io.emit('mensagem-audio', msg);
+  });
+});
+
+server.listen(PORT, () => console.log('Nick a correr na porta ' + PORT));
