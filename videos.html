@@ -27,7 +27,6 @@ video{width:100%;height:220px;object-fit:cover;display:block;background:#000}
 </style>
 </head>
 <body>
-<a href="index.html">← Voltar NICK</a>
 <div style="display:flex;justify-content:space-between;margin-top:10px"><div class="logo">✦ NICK</div><div>🎬 IA</div></div>
 <div class="status" id="status">🤖 IA A CRIAR VÍDEOS...</div>
 
@@ -60,13 +59,11 @@ videos.unshift({id:Date.now()+Math.random(),titulo:nomes[tipo],emoji:emojis[tipo
 gerados++;
 }
 for(let i=0;i<20;i++){ criarVideo(); }
-
 function copiarPrompt(texto, botao){
   if(navigator.clipboard){
     navigator.clipboard.writeText(texto).then(function(){ botao.innerHTML="✅ COPIADO! Cola na Kling / Hailuo"; setTimeout(function(){ botao.innerHTML="📋 COPIAR PROMPT COM MARCA NICK"; },2000); });
   } else { alert(texto); }
 }
-
 function publicarMeuVideo(input){
   if(!input.files[0]) return;
   let url = URL.createObjectURL(input.files[0]);
@@ -75,7 +72,6 @@ function publicarMeuVideo(input){
   mostrar();
   alert("Obrigado bro! O teu vídeo já está na NICK! Partilha o link para os teus amigos verem.");
 }
-
 function mostrar(){
 let l=document.getElementById('lista');
 l.innerHTML="";
