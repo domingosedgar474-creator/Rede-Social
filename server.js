@@ -1,52 +1,74 @@
-const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
-const app = express();
-const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: "*" } });
-app.use(require('cors')());
-app.use(express.static('public'));
-app.use('/uploads', express.static('uploads'));
-if (!fs.existsSync('uploads')) fs.mkdirSync('uploads');
+const express = require("express");
+const multer = require("multer");
+const fs = require("fs");
+const path = require("path");
+const cors = require("cors");
 
-// --- NOVO: GUARDAR EM FICHEIRO PARA NÃO APAGAR ---
-const DATA_FILE = 'data.json';
-let data = { messages: [], videos: [] };
-if (fs.existsSync(DATA_FILE)) {
-  try { data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')); } catch(e){}
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+if (!fs.existsSync("uploads")) fs.mkdirSync("uploads");
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use(express.static(path.join(__dirname, "public")));
+
+let videos = [];
+let mensagens = [];
+if (fs.existsSync("data.json")) {
+  try {
+    const d = JSON.parse(fs.readFileSync("data.json", "utf8"));
+    videos = d.videos || [];
+    mensagens = d.mensagens || [];
+  } catch (e) { videos = []; mensagens = []; }
 }
-let messages = data.messages;
-let videos = data.videos;
 
 function salvar() {
-  fs.writeFileSync(DATA_FILE, JSON.stringify({ messages, videos }));
+  try {
+    fs.writeFileSync("data.json", JSON.stringify({ videos, mensagens }));
+  } catch (e) { console.log("Erro ao salvar", e); }
 }
-// --- FIM DO NOVO ---
 
 const storage = multer.diskStorage({
-  destination: 'uploads/',
-  filename: (req,file,cb)=>cb(null, Date.now()+path.extname(file.originalname))
+  destination: (req, file, cb) => cb(null, "uploads/"),
+  filename: (req, file, cb) => {
+    const nome = Date.now() + "-" + Math.round(Math.random() * 100000) + path.extname(file.originalname || ".mp4");
+    cb(null, nome);
+  }
 });
-const upload = multer({ storage, limits: { fileSize: 100*1024*1024 } });
+const upload = multer({ storage, limits: { fileSize: 100 * 1024 * 1024 } });
 
-app.post('/upload', upload.single('video'), (req,res)=>{
-  if(!req.file) return res.status(400).json({error:'sem ficheiro'});
-  const v = { id: Date.now(), url: '/uploads/'+req.file.filename, name: req.file.originalname, user: req.body.user||'anon' };
-  videos.unshift(v); salvar(); io.emit('newVideo', v); res.json(v);
+app.get("/videos", (req, res) => {
+  res.json(videos);
 });
-app.get('/videos', (req,res)=>res.json(videos));
-app.get('/messages', (req,res)=>res.json(messages));
-io.on('connection', socket=>{
-  socket.on('chat', data=>{
-    const msg = { ...data, time: new Date().toLocaleTimeString(), id: Date.now() };
-    messages.push(msg); if(messages.length>200) messages.shift(); salvar(); io.emit('chat', msg);
-  });
-  socket.on('audio', data=>{
-    messages.push(data); salvar(); io.emit('chat', data);
-  });
+
+app.post("/upload", upload.single("video"), (req, res) => {
+  if (!req.file) return res.json({ error: "Sem ficheiro" });
+  const novo = {
+    id: Date.now(),
+    url: "/uploads/" + req.file.filename,
+    user: req.body.user || "Nick",
+    date: new Date().toISOString()
+  };
+  videos.push(novo);
+  salvar();
+  res.json(novo);
 });
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, ()=>console.log('Rodando '+PORT));
+
+app.get("/zerar", (req, res) => {
+  videos = [];
+  mensagens = [];
+  try { fs.writeFileSync("data.json", JSON.stringify({ videos: [], mensagens: [] })); } catch (e) {}
+  try {
+    fs.readdirSync("uploads").forEach(f => {
+      try { fs.unlinkSync(path.join("uploads", f)); } catch (e) {}
+    });
+  } catch (e) {}
+  res.send("ZERADO - agora está 0");
+});
+
+app.get("/health", (req, res) => res.send("OK"));
+
+app.listen(PORT, () => console.log("Nick a correr na porta " + PORT));
